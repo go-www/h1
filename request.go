@@ -15,18 +15,6 @@ type Request struct {
 	// Header
 }
 
-var (
-	parserRequestMethodGET     = []byte("GET")
-	parserRequestMethodPUT     = []byte("PUT")
-	parserRequestMethodHEAD    = []byte("HEAD")
-	parserRequestMethodPOST    = []byte("POST")
-	parserRequestMethodTRACE   = []byte("TRACE")
-	parserRequestMethodPATCH   = []byte("PATCH")
-	parserRequestMethodDELETE  = []byte("DELETE")
-	parserRequestMethodCONNECT = []byte("CONNECT")
-	parserRequestMethodOPTIONS = []byte("OPTIONS")
-)
-
 var ErrInvalidMethod = errors.New("invalid method")
 var ErrInvalidURI = errors.New("invalid uri")
 var ErrInvalidVersion = errors.New("invalid version")
