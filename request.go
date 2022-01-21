@@ -59,6 +59,9 @@ var _ = func() int {
 	//POST
 	const POSTIndex = 'P' ^ 'O' + 'S'
 	methodTable[POSTIndex] = MethodPOST
+	//BREW
+	const BREWIndex = 'B' ^ 'R' + 'E'
+	methodTable[BREWIndex] = MethodBREW
 	//TRACE
 	const TRACEIndex = 'T' ^ 'R' + 'A'
 	methodTable[TRACEIndex] = MethodTRACE
@@ -81,6 +84,7 @@ var _ = func() int {
 		PUTIndex:     MethodPUT,
 		HEADIndex:    MethodHEAD,
 		POSTIndex:    MethodPOST,
+		BREWIndex:    MethodBREW,
 		TRACEIndex:   MethodTRACE,
 		PATCHIndex:   MethodPATCH,
 		DELETEIndex:  MethodDELETE,

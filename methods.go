@@ -13,6 +13,8 @@ const (
 	MethodOPTIONS
 	MethodTRACE
 	MethodPATCH
+
+	MethodBREW // HTCPCP/1.0 (https://datatracker.ietf.org/doc/html/rfc2324)
 )
 
 /*
