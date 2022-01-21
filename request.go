@@ -9,13 +9,13 @@ import (
 type Request struct {
 	noCopy
 
-	method  Method
+	Method  Method
 	URI     []byte
 	Version []byte
 
-	// Header
-
-	headers *Header
+	// Headers
+	Headers       *Header
+	ContentLength int64
 }
 
 var ErrInvalidMethod = errors.New("invalid method")
@@ -44,7 +44,7 @@ func parseRequestLineforTest(src []byte) (method Method, uri []byte, version []b
 	if err != nil {
 		return MethodInvalid, nil, nil, nil, err
 	}
-	return req.method, req.URI, req.Version, next, nil
+	return req.Method, req.URI, req.Version, next, nil
 }
 
 var methodTable = [256]Method{}
@@ -118,7 +118,7 @@ func ParseRequestLine(dst *Request, src []byte) (next []byte, err error) {
 
 	m := line[:MethodIndex]
 
-	dst.method = methodTable[m[0]^m[1]+m[2]]
+	dst.Method = methodTable[m[0]^m[1]+m[2]]
 	return next, nil
 }
 
