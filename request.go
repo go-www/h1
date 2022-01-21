@@ -3,6 +3,7 @@ package h1
 import (
 	"bytes"
 	"errors"
+	"io"
 	"strconv"
 	"sync"
 )
@@ -249,4 +250,40 @@ func ReturnAllHeaders(h *Header) {
 		PutHeader(h)
 		h = next
 	}
+}
+
+// TODO: 4k buffer pool
+
+func ParseRequest(dst *Request, r io.Reader) (err error) {
+	dst.Reset()
+	var buffer []byte = make([]byte, 4096)
+	n, err := r.Read(buffer)
+	if err != nil {
+		return err
+	}
+	var next []byte = buffer[:n]
+	next, err = ParseRequestLine(dst, next)
+	if err != nil {
+		return err
+	}
+
+	for {
+		next, err = ParseHeaders(dst, next)
+		if err == ErrBufferTooSmall {
+			remainBytes := copy(buffer, next)
+			next = buffer
+			n, err = r.Read(buffer[remainBytes:])
+			if err != nil {
+				return err
+			}
+			next = buffer[:remainBytes+n]
+			continue
+		}
+		if err != nil {
+			return err
+		}
+		break
+	}
+
+	return nil
 }
