@@ -149,6 +149,8 @@ func ParseRequestLine(dst *Request, src []byte) (next []byte, err error) {
 	return next, nil
 }
 
+var ContentLengthHeader = []byte("Content-Length")
+
 func ParseHeaders(dst *Request, src []byte) (next []byte, err error) {
 	next = src
 	var line []byte
@@ -170,7 +172,7 @@ func ParseHeaders(dst *Request, src []byte) (next []byte, err error) {
 		dst.lastHeader.raw = line
 		dst.lastHeader.Name, dst.lastHeader.RawValue = ParseHeaderLine(line)
 
-		if string(dst.lastHeader.Name) == "Content-Length" { // TODO: allow case-insensitive
+		if stricmp(dst.lastHeader.Name, ContentLengthHeader) {
 			dst.ContentLength, err = ParseContentLength(dst.lastHeader.RawValue)
 			if err != nil {
 				return nil, err
