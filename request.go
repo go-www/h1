@@ -168,7 +168,7 @@ func ParseHeaders(dst *Request, src []byte) (next []byte, err error) {
 			dst.lastHeader = dst.lastHeader.nextHeader
 		}
 		dst.lastHeader.raw = line
-		dst.lastHeader.Name, dst.lastHeader.RawValue = ParseHeader(line)
+		dst.lastHeader.Name, dst.lastHeader.RawValue = ParseHeaderLine(line)
 
 		if string(dst.lastHeader.Name) == "Content-Length" {
 			dst.ContentLength, err = ParseContentLength(dst.lastHeader.RawValue)
@@ -184,7 +184,7 @@ func ParseContentLength(src []byte) (int64, error) {
 	return strconv.ParseInt(string(src), 10, 64)
 }
 
-func ParseHeader(src []byte) (name []byte, value []byte) {
+func ParseHeaderLine(src []byte) (name []byte, value []byte) {
 	idx := bytes.IndexByte(src, ':')
 	if idx < 0 {
 		return src[:0], nil
