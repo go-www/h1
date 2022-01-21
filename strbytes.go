@@ -1,3 +1,5 @@
+//go:build !appengine && !nounsafe
+
 package h1
 
 import (

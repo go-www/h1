@@ -1,6 +1,6 @@
 package h1
 
-type Method uint32
+type Method uint8
 
 const (
 	MethodInvalid Method = iota
@@ -12,6 +12,7 @@ const (
 	MethodCONNECT
 	MethodOPTIONS
 	MethodTRACE
+	MethodPATCH
 )
 
 /*
