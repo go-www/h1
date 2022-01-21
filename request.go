@@ -3,6 +3,7 @@ package h1
 import (
 	"bytes"
 	"errors"
+	"strconv"
 	"sync"
 )
 
@@ -14,7 +15,9 @@ type Request struct {
 	Version []byte
 
 	// Headers
-	Headers       *Header
+	Headers    *Header
+	lastHeader *Header
+
 	ContentLength int64
 }
 
@@ -144,6 +147,66 @@ func ParseRequestLine(dst *Request, src []byte) (next []byte, err error) {
 
 	dst.Method = methodTable[m[0]^m[1]+m[2]]
 	return next, nil
+}
+
+func ParseHeaders(dst *Request, src []byte) (next []byte, err error) {
+	next = src
+	var line []byte
+	for {
+		line, next, err = splitLine(next)
+		if err != nil {
+			return nil, err
+		}
+		if len(line) == 0 {
+			break
+		}
+		if dst.lastHeader == nil {
+			dst.Headers = GetHeader()
+			dst.lastHeader = dst.Headers
+		} else {
+			dst.lastHeader.nextHeader = GetHeader()
+			dst.lastHeader = dst.lastHeader.nextHeader
+		}
+		dst.lastHeader.raw = line
+		dst.lastHeader.Name, dst.lastHeader.RawValue = ParseHeader(line)
+
+		if string(dst.lastHeader.Name) == "Content-Length" {
+			dst.ContentLength, err = ParseContentLength(dst.lastHeader.RawValue)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return next, nil
+}
+
+func ParseContentLength(src []byte) (int64, error) {
+	return strconv.ParseInt(string(src), 10, 64)
+}
+
+func ParseHeader(src []byte) (name []byte, value []byte) {
+	idx := bytes.IndexByte(src, ':')
+	if idx < 0 {
+		return src[:0], nil
+	}
+	// RFC2616 Section 4.2
+	// Remove all leading and trailing LWS on field contents
+
+	// skip leading LWS
+	var i int = idx
+	for ; i < len(src); i++ {
+		if src[i] != ' ' && src[i] != '\t' {
+			break
+		}
+	}
+	// skip trailing LWS
+	var j int = len(src) - 1
+	for ; j > i; j-- {
+		if src[j] != ' ' && src[j] != '\t' {
+			break
+		}
+	}
+	return src[:idx], src[i : j+1]
 }
 
 type Header struct {
