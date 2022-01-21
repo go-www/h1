@@ -75,23 +75,18 @@ var _ = func() int {
 	const OPTIONSIndex = 'O' ^ 'P' + 'T'
 	methodTable[OPTIONSIndex] = MethodOPTIONS
 
-	// all methods should have distinct index
-	var distinctCheck [256]bool
-	ch := func(i int) {
-		if distinctCheck[i] {
-			panic("duplicate method")
-		}
-		distinctCheck[i] = true
+	// all methods should have distinct index number
+	var _ = map[int]Method{
+		GETIndex:     MethodGET,
+		PUTIndex:     MethodPUT,
+		HEADIndex:    MethodHEAD,
+		POSTIndex:    MethodPOST,
+		TRACEIndex:   MethodTRACE,
+		PATCHIndex:   MethodPATCH,
+		DELETEIndex:  MethodDELETE,
+		CONNECTIndex: MethodCONNECT,
+		OPTIONSIndex: MethodOPTIONS,
 	}
-	ch(GETIndex)
-	ch(PUTIndex)
-	ch(HEADIndex)
-	ch(POSTIndex)
-	ch(TRACEIndex)
-	ch(PATCHIndex)
-	ch(DELETEIndex)
-	ch(CONNECTIndex)
-	ch(OPTIONSIndex)
 
 	return 0
 }()
