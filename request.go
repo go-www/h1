@@ -3,6 +3,7 @@ package h1
 import (
 	"bytes"
 	"errors"
+	"sync"
 )
 
 type Request struct {
@@ -13,6 +14,8 @@ type Request struct {
 	Version []byte
 
 	// Header
+
+	headers *Header
 }
 
 var ErrInvalidMethod = errors.New("invalid method")
@@ -117,4 +120,44 @@ func ParseRequestLine(dst *Request, src []byte) (next []byte, err error) {
 
 	dst.method = methodTable[m[0]^m[1]+m[2]]
 	return next, nil
+}
+
+type Header struct {
+	noCopy
+	raw []byte
+
+	Name     []byte
+	RawValue []byte
+
+	nextHeader *Header // single linked list
+}
+
+var headerPool = sync.Pool{
+	New: func() interface{} {
+		return &Header{}
+	},
+}
+
+func GetHeader() *Header {
+	return headerPool.Get().(*Header)
+}
+
+func PutHeader(h *Header) {
+	h.Reset()
+	headerPool.Put(h)
+}
+
+func (h *Header) Reset() {
+	h.raw = nil
+	h.Name = nil
+	h.RawValue = nil
+	h.nextHeader = nil
+}
+
+func ReturnAllHeaders(h *Header) {
+	for h != nil {
+		next := h.nextHeader
+		PutHeader(h)
+		h = next
+	}
 }
