@@ -18,6 +18,30 @@ type Request struct {
 	ContentLength int64
 }
 
+var requestPool = sync.Pool{
+	New: func() interface{} {
+		return &Request{}
+	},
+}
+
+func (r *Request) Reset() {
+	r.Method = MethodInvalid
+	r.URI = nil
+	r.Version = nil
+	ReturnAllHeaders(r.Headers)
+	r.Headers = nil
+	r.ContentLength = 0
+}
+
+func GetRequest() *Request {
+	return requestPool.Get().(*Request)
+}
+
+func PutRequest(r *Request) {
+	r.Reset()
+	requestPool.Put(r)
+}
+
 var ErrInvalidMethod = errors.New("invalid method")
 var ErrInvalidURI = errors.New("invalid uri")
 var ErrInvalidVersion = errors.New("invalid version")
