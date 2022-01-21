@@ -56,6 +56,58 @@ func parseRequestLineforTest(src []byte) (method Method, uri []byte, version []b
 	return req.method, req.URI, req.Version, next, nil
 }
 
+var methodTable = [256]Method{}
+
+var _ = func() int {
+	//GET
+	const GETIndex = 'G' ^ 'E' + 'T'
+	methodTable[GETIndex] = MethodGET
+	//PUT
+	const PUTIndex = 'P' ^ 'U' + 'T'
+	methodTable[PUTIndex] = MethodPUT
+	//HEAD
+	const HEADIndex = 'H' ^ 'E' + 'A'
+	methodTable[HEADIndex] = MethodHEAD
+	//POST
+	const POSTIndex = 'P' ^ 'O' + 'S'
+	methodTable[POSTIndex] = MethodPOST
+	//TRACE
+	const TRACEIndex = 'T' ^ 'R' + 'A'
+	methodTable[TRACEIndex] = MethodTRACE
+	//PATCH
+	const PATCHIndex = 'P' ^ 'A' + 'T'
+	methodTable[PATCHIndex] = MethodPATCH
+	//DELETE
+	const DELETEIndex = 'D' ^ 'E' + 'L'
+	methodTable[DELETEIndex] = MethodDELETE
+	//CONNECT
+	const CONNECTIndex = 'C' ^ 'O' + 'N'
+	methodTable[CONNECTIndex] = MethodCONNECT
+	//OPTIONS
+	const OPTIONSIndex = 'O' ^ 'P' + 'T'
+	methodTable[OPTIONSIndex] = MethodOPTIONS
+
+	// all methods should have distinct index
+	var distinctCheck [256]bool
+	ch := func(i int) {
+		if distinctCheck[i] {
+			panic("duplicate method")
+		}
+		distinctCheck[i] = true
+	}
+	ch(GETIndex)
+	ch(PUTIndex)
+	ch(HEADIndex)
+	ch(POSTIndex)
+	ch(TRACEIndex)
+	ch(PATCHIndex)
+	ch(DELETEIndex)
+	ch(CONNECTIndex)
+	ch(OPTIONSIndex)
+
+	return 0
+}()
+
 func ParseRequestLine(dst *Request, src []byte) (next []byte, err error) {
 	next = src
 	var line []byte
@@ -64,7 +116,7 @@ func ParseRequestLine(dst *Request, src []byte) (next []byte, err error) {
 		return nil, err
 	}
 	MethodIndex := bytes.IndexByte(line, ' ')
-	if MethodIndex < 0 {
+	if MethodIndex < 0 || MethodIndex < 3 {
 		return nil, ErrInvalidMethod
 	}
 	URIIndex := bytes.IndexByte(line[MethodIndex+1:], ' ')
@@ -76,28 +128,6 @@ func ParseRequestLine(dst *Request, src []byte) (next []byte, err error) {
 
 	m := line[:MethodIndex]
 
-	switch {
-	case string(m) == string(parserRequestMethodGET):
-		dst.method = MethodGET
-	case string(m) == string(parserRequestMethodPUT):
-		dst.method = MethodPUT
-	case string(m) == string(parserRequestMethodHEAD):
-		dst.method = MethodHEAD
-	case string(m) == string(parserRequestMethodPOST):
-		dst.method = MethodPOST
-	case string(m) == string(parserRequestMethodTRACE):
-		dst.method = MethodTRACE
-	case string(m) == string(parserRequestMethodPATCH):
-		dst.method = MethodPATCH
-	case string(m) == string(parserRequestMethodDELETE):
-		dst.method = MethodDELETE
-	case string(m) == string(parserRequestMethodCONNECT):
-		dst.method = MethodCONNECT
-	case string(m) == string(parserRequestMethodOPTIONS):
-		dst.method = MethodOPTIONS
-	default:
-		dst.method = MethodInvalid
-		return nil, ErrInvalidMethod
-	}
+	dst.method = methodTable[m[0]^m[1]+m[2]]
 	return next, nil
 }

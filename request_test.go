@@ -68,7 +68,7 @@ func Test_parseRequestLineforTest(t *testing.T) {
 		{"HTTP1.1 OPTIONS", args{[]byte("OPTIONS / HTTP/1.1\r\nHost: localhost\r\n\r\n")}, MethodOPTIONS, []byte("/"), []byte("HTTP/1.1"), []byte("Host: localhost\r\n\r\n"), false},
 		{"HTTP1.1 TRACE", args{[]byte("TRACE / HTTP/1.1\r\nHost: localhost\r\n\r\n")}, MethodTRACE, []byte("/"), []byte("HTTP/1.1"), []byte("Host: localhost\r\n\r\n"), false},
 		{"HTTP1.1 PATCH", args{[]byte("PATCH / HTTP/1.1\r\nHost: localhost\r\n\r\n")}, MethodPATCH, []byte("/"), []byte("HTTP/1.1"), []byte("Host: localhost\r\n\r\n"), false},
-		{"Invalid Method", args{[]byte("INVALID / HTTP/1.1\r\nHost: localhost\r\n\r\n")}, MethodInvalid, nil, nil, nil, true},
+		{"Invalid Method", args{[]byte("INVALID / HTTP/1.1\r\nHost: localhost\r\n\r\n")}, MethodInvalid, []byte("/"), []byte("HTTP/1.1"), []byte("Host: localhost\r\n\r\n"), false},
 		{"Invalid URI", args{[]byte("GET HTTP/1.1\r\nHost: localhost\r\n\r\n")}, MethodInvalid, nil, nil, nil, true},
 		{"Invalid Version", args{[]byte("GET /")}, MethodInvalid, nil, nil, nil, true},
 	}
