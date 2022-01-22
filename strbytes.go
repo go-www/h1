@@ -8,8 +8,9 @@ import (
 )
 
 func stringToBytes(s string) []byte {
+	//#nosec
 	strHeader := (*reflect.StringHeader)(unsafe.Pointer(&s))
-
+	//#nosec
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
 		Data: strHeader.Data,
 		Len:  strHeader.Len,
@@ -18,5 +19,6 @@ func stringToBytes(s string) []byte {
 }
 
 func bytesToString(b []byte) string {
+	//#nosec
 	return *(*string)(unsafe.Pointer(&b))
 }
