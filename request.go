@@ -42,6 +42,17 @@ func (r *Request) Reset() {
 	r.ContentLength = 0
 }
 
+func (r *Request) GetHeader(name []byte) (*Header, bool) {
+	h := r.Headers
+	for h != nil {
+		if stricmp(h.Name, name) {
+			return h, true
+		}
+		h = h.nextHeader
+	}
+	return nil, false
+}
+
 func GetRequest() *Request {
 	return requestPool.Get().(*Request)
 }
