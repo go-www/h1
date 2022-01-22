@@ -253,26 +253,54 @@ func ReturnAllHeaders(h *Header) {
 	}
 }
 
-// TODO: 4k buffer pool
+const BufferPoolSize = 4096
 
+var bufferPool = sync.Pool{
+	New: func() interface{} {
+		buffer := make([]byte, BufferPoolSize)
+		return &buffer
+	},
+}
+
+func GetBuffer() *[]byte {
+	return bufferPool.Get().(*[]byte)
+}
+
+func PutBuffer(b *[]byte) {
+	if cap(*b) >= BufferPoolSize {
+		bufferPool.Put(b)
+	}
+}
+
+var GlobalParserLock sync.Mutex
+
+// Do not use this function in production code.
+// This function is only for testing purpose.
+// It is thread-safe but use global lock.
 func ParseRequest(dst *Request, r io.Reader) (err error) {
+	GlobalParserLock.Lock()
+	defer GlobalParserLock.Unlock()
 	dst.Reset()
-	var buffer []byte = make([]byte, 4096)
-	n, err := r.Read(buffer)
+	var buffer *[]byte = GetBuffer()
+	defer PutBuffer(buffer)
+	n, err := r.Read(*buffer)
 	if err != nil {
 		return err
 	}
-	var next []byte = buffer[:n]
+	var next []byte = (*buffer)[:n]
 retryRead:
+
+	// This function can't parse request line correctly if the request line is too long (>=4096)
 	next, err = ParseRequestLine(dst, next)
 	if err == ErrBufferTooSmall {
-		remainBytes := copy(buffer, next)
-		next = buffer
-		n, err = r.Read(buffer[remainBytes:])
+		buffer = GetBuffer()
+		defer PutBuffer(buffer)
+		remainBytes := copy(*buffer, next)
+		n, err = r.Read((*buffer)[remainBytes:])
 		if err != nil {
 			return err
 		}
-		next = buffer[:remainBytes+n]
+		next = (*buffer)[:remainBytes+n]
 		goto retryRead
 	} else if err != nil {
 		return err
@@ -281,13 +309,14 @@ retryRead:
 	for {
 		next, err = ParseHeaders(dst, next)
 		if err == ErrBufferTooSmall {
-			remainBytes := copy(buffer, next)
-			next = buffer
-			n, err = r.Read(buffer[remainBytes:])
+			buffer = GetBuffer()
+			defer PutBuffer(buffer)
+			remainBytes := copy(*buffer, next)
+			n, err = r.Read((*buffer)[remainBytes:])
 			if err != nil {
 				return err
 			}
-			next = buffer[:remainBytes+n]
+			next = (*buffer)[:remainBytes+n]
 			continue
 		}
 		if err != nil {
