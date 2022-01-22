@@ -39,6 +39,7 @@ func (r *Request) Reset() {
 	r.Version = nil
 	ReturnAllHeaders(r.Headers)
 	r.Headers = nil
+	r.lastHeader = nil
 	r.ContentLength = 0
 }
 
