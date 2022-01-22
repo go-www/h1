@@ -3,6 +3,7 @@ package h1
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -174,12 +175,26 @@ func Test_parseRequestForTestIsValid(t *testing.T) {
 	type args struct {
 		data []byte
 	}
+
+	var LargeHeaderRequest bytes.Buffer
+	LargeHeaderRequest.WriteString("GET / HTTP/1.1\r\nHost: localhost\r\n")
+	for i := 0; i < 1024; i++ {
+		LargeHeaderRequest.WriteString(fmt.Sprintf("Header%d: value%d\r\n", i, i))
+	}
+	LargeHeaderRequest.WriteString("\r\n")
+
 	tests := []struct {
 		name string
 		args args
 		want bool
 	}{
-		// TODO: Add test cases.
+		{"empty", args{[]byte("")}, false},
+		{"GET / request", args{[]byte("GET / HTTP/1.1\r\nHost: localhost\r\n\r\n")}, true},
+		{"POST / request", args{[]byte("POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: 12\r\n\r\nHello World!")}, true},
+		{"Malformed GET Request0", args{[]byte("get / HTTP/1.1\r\nHost: localhost\r\n\r\n")}, true},
+		{"Malformed GET Request1", args{[]byte("GET /HTTP/1.1\r\nHost: localhost\r\n\r\n")}, false},
+		{"Malformed GET Request2", args{[]byte("GET/ HTTP/1.1\r\nHost: localhost\r\n\r\n")}, false},
+		{"Large Request Line", args{LargeHeaderRequest.Bytes()}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

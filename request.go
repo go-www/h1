@@ -54,7 +54,7 @@ var ErrBufferTooSmall = errors.New("buffer too small")
 
 func splitLine(src []byte) (line, rest []byte, err error) {
 	idx := bytes.IndexByte(src, '\n')
-	if idx == -1 {
+	if idx < 1 { // 0: cr 1: lf
 		return nil, src, ErrBufferTooSmall
 	}
 
@@ -184,7 +184,8 @@ func ParseHeaders(dst *Request, src []byte) (next []byte, err error) {
 }
 
 func ParseContentLength(src []byte) (int64, error) {
-	return strconv.ParseInt(string(src), 10, 64)
+	srcS := bytesToString(src)
+	return strconv.ParseInt(srcS, 10, 64)
 }
 
 func ParseHeaderLine(src []byte) (name []byte, value []byte) {
@@ -262,8 +263,18 @@ func ParseRequest(dst *Request, r io.Reader) (err error) {
 		return err
 	}
 	var next []byte = buffer[:n]
+retryRead:
 	next, err = ParseRequestLine(dst, next)
-	if err != nil {
+	if err == ErrBufferTooSmall {
+		remainBytes := copy(buffer, next)
+		next = buffer
+		n, err = r.Read(buffer[remainBytes:])
+		if err != nil {
+			return err
+		}
+		next = buffer[:remainBytes+n]
+		goto retryRead
+	} else if err != nil {
 		return err
 	}
 
