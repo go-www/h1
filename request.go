@@ -20,6 +20,10 @@ type Request struct {
 	lastHeader *Header
 
 	ContentLength int64
+
+	// Body
+	Buffer *[]byte
+	next   []byte
 }
 
 var requestPool = sync.Pool{
@@ -324,7 +328,8 @@ retryRead:
 		}
 		break
 	}
-
+	dst.next = next
+	dst.Buffer = buffer
 	return nil
 }
 
