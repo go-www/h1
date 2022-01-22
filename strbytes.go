@@ -7,6 +7,7 @@ import (
 	"unsafe"
 )
 
+//nolint
 func stringToBytes(s string) []byte {
 	//#nosec
 	strHeader := (*reflect.StringHeader)(unsafe.Pointer(&s))
