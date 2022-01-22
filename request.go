@@ -41,6 +41,8 @@ func (r *Request) Reset() {
 	r.Headers = nil
 	r.lastHeader = nil
 	r.ContentLength = 0
+	r.Buffer = nil
+	r.next = nil
 }
 
 func (r *Request) GetHeader(name []byte) (*Header, bool) {
