@@ -298,7 +298,7 @@ func ParseRequest(dst *Request, r io.Reader) (err error) {
 	defer GlobalParserLock.Unlock()
 	dst.Reset()
 	var buffer *[]byte = GetBuffer()
-	defer PutBuffer(buffer)
+	//defer PutBuffer(buffer) // Allow GC to collect the buffer
 	n, err := r.Read(*buffer)
 	if err != nil {
 		return err
@@ -310,7 +310,7 @@ retryRead:
 	next, err = ParseRequestLine(dst, next)
 	if err == ErrBufferTooSmall {
 		buffer = GetBuffer()
-		defer PutBuffer(buffer)
+		//defer PutBuffer(buffer)
 		remainBytes := copy(*buffer, next)
 		n, err = r.Read((*buffer)[remainBytes:])
 		if err != nil {
@@ -326,7 +326,7 @@ retryRead:
 		next, err = ParseHeaders(dst, next)
 		if err == ErrBufferTooSmall {
 			buffer = GetBuffer()
-			defer PutBuffer(buffer)
+			//defer PutBuffer(buffer)
 			remainBytes := copy(*buffer, next)
 			n, err = r.Read((*buffer)[remainBytes:])
 			if err != nil {
