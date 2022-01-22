@@ -2,6 +2,7 @@ package h1
 
 import (
 	"bytes"
+	"encoding/json"
 	"reflect"
 	"testing"
 )
@@ -91,6 +92,99 @@ func Test_parseRequestLineforTest(t *testing.T) {
 			}
 			if !reflect.DeepEqual(gotNext, tt.wantNext) {
 				t.Errorf("parseRequestLineforTest() gotNext = %v, want %v", gotNext, tt.wantNext)
+			}
+		})
+	}
+}
+
+func DeepCompare(a, b interface{}) bool {
+	// check if the two interfaces are the same type
+	if reflect.TypeOf(a) != reflect.TypeOf(b) {
+		return false
+	}
+
+	// check if the two interfaces are the pointer
+	if reflect.ValueOf(a).Kind() == reflect.ValueOf(b).Kind() && reflect.ValueOf(a).Kind() == reflect.Ptr {
+		return reflect.DeepEqual(reflect.ValueOf(a).Elem().Interface(), reflect.ValueOf(b).Elem().Interface())
+	}
+
+	// check if the two interfaces are the same value
+	return reflect.DeepEqual(a, b)
+}
+
+func Test_parseRequestForTest(t *testing.T) {
+	type args struct {
+		data []byte
+	}
+	type TCase struct {
+		name    string
+		args    args
+		want    *Request
+		wantErr bool
+	}
+	tests := []TCase{
+		{
+			"empty",
+			args{[]byte("")},
+			&Request{},
+			true,
+		},
+	}
+
+	/*
+		Header := &Header{
+			raw:      []byte("Host: localhost\r\n\r\n"),
+			Name:     []byte("Host"),
+			RawValue: []byte("localhost"),
+		}
+			tests = append(tests, TCase{
+				"get / request",
+				args{[]byte(
+					"GET / HTTP/1.1\r\nHost: localhost\r\n\r\n",
+				)},
+				&Request{
+					Method:     MethodGET,
+					URI:        []byte("/"),
+					Version:    []byte("HTTP/1.1"),
+					lastHeader: Header,
+					Headers:    Header,
+				},
+				false,
+			})
+	*/
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parseRequestForTest(tt.args.data)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("parseRequestForTest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !DeepCompare(got, tt.want) {
+				t.Errorf("parseRequestForTest() = %v, want %v", got, tt.want)
+				gotDumped, _ := json.MarshalIndent(got, "", "  ")
+				wantDumped, _ := json.MarshalIndent(tt.want, "", "  ")
+				t.Logf("got: %s\n", gotDumped)
+				t.Logf("want: %s\n", wantDumped)
+			}
+		})
+	}
+}
+
+func Test_parseRequestForTestIsValid(t *testing.T) {
+	type args struct {
+		data []byte
+	}
+	tests := []struct {
+		name string
+		args args
+		want bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := parseRequestForTestIsValid(tt.args.data); got != tt.want {
+				t.Errorf("parseRequestForTestIsValid() = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -196,7 +196,7 @@ func ParseHeaderLine(src []byte) (name []byte, value []byte) {
 	// Remove all leading and trailing LWS on field contents
 
 	// skip leading LWS
-	var i int = idx
+	var i int = idx + 1
 	for ; i < len(src); i++ {
 		if src[i] != ' ' && src[i] != '\t' {
 			break
@@ -286,4 +286,15 @@ func ParseRequest(dst *Request, r io.Reader) (err error) {
 	}
 
 	return nil
+}
+
+func parseRequestForTest(data []byte) (*Request, error) {
+	r := &Request{}
+	err := ParseRequest(r, bytes.NewReader(data))
+	return r, err
+}
+
+func parseRequestForTestIsValid(data []byte) bool {
+	_, err := parseRequestForTest(data)
+	return err == nil
 }
