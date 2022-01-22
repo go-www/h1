@@ -205,3 +205,24 @@ func Test_parseRequestForTestIsValid(t *testing.T) {
 		})
 	}
 }
+
+var TestFullReqData = []byte("GET / HTTP/1.1\r\nHost: localhost:8091\r\nConnection: keep-alive\r\nsec-ch-ua: \" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"97\", \"Chromium\";v=\"97\"\r\nsec-ch-ua-mobile: ?0\r\nsec-ch-ua-platform: \"Windows\"\r\nDNT: 1\r\nUpgrade-Insecure-Requests: 1\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\nSec-Fetch-Site: none\r\nSec-Fetch-Mode: navigate\r\nSec-Fetch-User: ?1\r\nSec-Fetch-Dest: document\r\n\r\n")
+
+func BenchmarkParseRequest(b *testing.B) {
+	b.ReportAllocs()
+	b.RunParallel(func(p *testing.PB) {
+		request := &Request{}
+		for p.Next() {
+			next, err := ParseRequestLine(request, TestFullReqData)
+			if err != nil {
+				b.Error(err)
+			}
+			next, err = ParseHeaders(request, next)
+			if err != nil {
+				b.Error(err)
+			}
+			_ = next
+			request.Reset()
+		}
+	})
+}

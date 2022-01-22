@@ -11,7 +11,7 @@ func stricmp(a, b []byte) bool {
 
 	// Slow Path
 	for i := 0; i < len(a); i++ {
-		if !(a[i] == b[i] || /* case-insensitive */ (a[i]|0x20) == (b[i]|0x20)) {
+		if !( /* case-insensitive */ (a[i] | 0x20) == (b[i] | 0x20)) {
 			return false
 		}
 	}
