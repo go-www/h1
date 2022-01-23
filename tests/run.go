@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 )
 
 var Benchmarks = []string{
@@ -20,7 +21,7 @@ func main() {
 		log.Println(err)
 	}
 
-	fmt.Print("# Benchmark Results\n\n")
+	fmt.Print("# Benchmark Results (OS:", runtime.GOOS, ")\n")
 
 	for _, benchmark := range Benchmarks {
 		var buffer bytes.Buffer
