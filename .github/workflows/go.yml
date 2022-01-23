@@ -68,11 +68,7 @@ jobs:
 
     - id: make-benchmark-report
       run: |
-          body=$(cat benchmark.md)
-          body="${body//'%'/'%25'}"
-          body="${body//$'\n'/'%0A'}"
-          body="${body//$'\r'/'%0D'}" 
-          echo ::set-output name=body::$body
+        go run ./tests/urlescape benchmark.md
 
     - name: commit-comment
       uses: peter-evans/commit-comment@v1
