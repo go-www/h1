@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  build:
+  Build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -40,7 +40,20 @@ jobs:
       uses: peter-evans/commit-comment@v1
       with:
         body: ${{ steps.make-report-body.outputs.body }}
-    
+  
+  Benchmark:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.17
+
+    - name: Setup Graphviz
+      uses: ts-graphviz/setup-graphviz@v1
+
     - name: Run Benchmark
       env:
         IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
