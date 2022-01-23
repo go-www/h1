@@ -25,10 +25,13 @@ jobs:
       run: go test -v ./...
     
     - name: Make Report
+      run: |
+        go install github.com/lemon-mint/golang-ci-tools@latest
+        golang-ci-tools > report.md
+
+    - name: Make Report Body
     - id: make-report
       run: |
-          go install github.com/lemon-mint/golang-ci-tools@latest
-          golang-ci-tools > report.md
           body=$(cat report.md)
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
@@ -38,13 +41,17 @@ jobs:
       uses: peter-evans/commit-comment@v1
       with:
         body: ${{ steps.make-report.outputs.body }}
-
+    
     - name: Run Benchmark
-    - id: make-benchmark-report
       env:
         IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
       run: |
-          body=$(go run ./.github/test)
+        go run ./tests > benchmark.md
+
+    - name: Make Benchmark Report Body
+    - id: make-benchmark-report
+      run: |
+          body=$(cat benchmark.md)
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}" 
