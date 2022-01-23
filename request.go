@@ -20,10 +20,6 @@ type Request struct {
 	Headers []Header
 
 	ContentLength int64
-
-	// Body
-	Buffer *[]byte
-	next   []byte
 }
 
 var requestPool = sync.Pool{
@@ -38,8 +34,6 @@ func (r *Request) Reset() {
 	r.Version = nil
 	r.Headers = r.Headers[:0]
 	r.ContentLength = 0
-	r.Buffer = nil
-	r.next = nil
 }
 
 func (r *Request) GetHeader(name []byte) (*Header, bool) {
@@ -258,7 +252,7 @@ var GlobalParserLock sync.Mutex
 // Do not use this function in production code.
 // This function is only for testing purpose.
 // It is thread-safe but use global lock.
-func ParseRequest(dst *Request, r io.Reader) (err error) {
+func ParseRequest(dst *Request, r io.Reader) (next []byte, err error) {
 	GlobalParserLock.Lock()
 	defer GlobalParserLock.Unlock()
 	dst.Reset()
@@ -266,9 +260,9 @@ func ParseRequest(dst *Request, r io.Reader) (err error) {
 	//defer PutBuffer(buffer) // Allow GC to collect the buffer
 	n, err := r.Read(*buffer)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	var next []byte = (*buffer)[:n]
+	next = (*buffer)[:n]
 retryRead:
 
 	// This function can't parse request line correctly if the request line is too long (>=4096)
@@ -279,12 +273,12 @@ retryRead:
 		remainBytes := copy(*buffer, next)
 		n, err = r.Read((*buffer)[remainBytes:])
 		if err != nil {
-			return err
+			return next, err
 		}
 		next = (*buffer)[:remainBytes+n]
 		goto retryRead
 	} else if err != nil {
-		return err
+		return next, err
 	}
 
 	for {
@@ -295,24 +289,22 @@ retryRead:
 			remainBytes := copy(*buffer, next)
 			n, err = r.Read((*buffer)[remainBytes:])
 			if err != nil {
-				return err
+				return next, err
 			}
 			next = (*buffer)[:remainBytes+n]
 			continue
 		}
 		if err != nil {
-			return err
+			return next, err
 		}
 		break
 	}
-	dst.next = next
-	dst.Buffer = buffer
-	return nil
+	return next, nil
 }
 
 func parseRequestForTest(data []byte) (*Request, error) {
 	r := &Request{}
-	err := ParseRequest(r, bytes.NewReader(data))
+	_, err := ParseRequest(r, bytes.NewReader(data))
 	return r, err
 }
 
