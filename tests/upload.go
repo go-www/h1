@@ -41,12 +41,6 @@ type Data struct {
 	URLViewer  string `json:"url_viewer"`
 	URL        string `json:"url"`
 	DisplayURL string `json:"display_url"`
-	Size       string `json:"size"`
-	Time       string `json:"time"`
-	Expiration string `json:"expiration"`
-	Image      Image  `json:"image"`
-	Thumb      Thumb  `json:"thumb"`
-	Medium     Medium `json:"medium"`
 	DeleteURL  string `json:"delete_url"`
 }
 
