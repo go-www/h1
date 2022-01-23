@@ -17,8 +17,7 @@ type Request struct {
 	Version []byte
 
 	// Headers
-	Headers    *Header
-	lastHeader *Header
+	Headers []Header
 
 	ContentLength int64
 
@@ -37,21 +36,17 @@ func (r *Request) Reset() {
 	r.Method = MethodInvalid
 	r.URI = nil
 	r.Version = nil
-	ReturnAllHeaders(r.Headers)
-	r.Headers = nil
-	r.lastHeader = nil
+	r.Headers = r.Headers[:0]
 	r.ContentLength = 0
 	r.Buffer = nil
 	r.next = nil
 }
 
 func (r *Request) GetHeader(name []byte) (*Header, bool) {
-	h := r.Headers
-	for h != nil {
-		if stricmp(h.Name, name) {
-			return h, true
+	for i := range r.Headers {
+		if stricmp(r.Headers[i].Name, name) {
+			return &r.Headers[i], true
 		}
-		h = h.nextHeader
 	}
 	return nil, false
 }
@@ -182,18 +177,12 @@ func ParseHeaders(dst *Request, src []byte) (next []byte, err error) {
 		if len(line) == 0 {
 			break
 		}
-		if dst.lastHeader == nil {
-			dst.Headers = GetHeader()
-			dst.lastHeader = dst.Headers
-		} else {
-			dst.lastHeader.nextHeader = GetHeader()
-			dst.lastHeader = dst.lastHeader.nextHeader
-		}
-		dst.lastHeader.raw = line
-		dst.lastHeader.Name, dst.lastHeader.RawValue = ParseHeaderLine(line)
+		h := Header{}
+		h.Name, h.RawValue = ParseHeaderLine(line)
+		dst.Headers = append(dst.Headers, h)
 
-		if stricmp(dst.lastHeader.Name, ContentLengthHeader) {
-			dst.ContentLength, err = ParseContentLength(dst.lastHeader.RawValue)
+		if stricmp(h.Name, ContentLengthHeader) {
+			dst.ContentLength, err = ParseContentLength(h.RawValue)
 			if err != nil {
 				return nil, err
 			}
@@ -233,43 +222,16 @@ func ParseHeaderLine(src []byte) (name []byte, value []byte) {
 }
 
 type Header struct {
-	noCopy
 	raw []byte
 
 	Name     []byte
 	RawValue []byte
-
-	nextHeader *Header // single linked list
-}
-
-var headerPool = sync.Pool{
-	New: func() interface{} {
-		return &Header{}
-	},
-}
-
-func GetHeader() *Header {
-	return headerPool.Get().(*Header)
-}
-
-func PutHeader(h *Header) {
-	h.Reset()
-	headerPool.Put(h)
 }
 
 func (h *Header) Reset() {
 	h.raw = nil
 	h.Name = nil
 	h.RawValue = nil
-	h.nextHeader = nil
-}
-
-func ReturnAllHeaders(h *Header) {
-	for h != nil {
-		next := h.nextHeader
-		PutHeader(h)
-		h = next
-	}
 }
 
 const BufferPoolSize = 4096
