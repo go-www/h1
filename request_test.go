@@ -196,6 +196,7 @@ func Test_parseRequestForTestIsValid(t *testing.T) {
 		{"Malformed GET Request1", args{[]byte("GET /HTTP/1.1\r\nHost: localhost\r\n\r\n")}, false},
 		{"Malformed GET Request2", args{[]byte("GET/ HTTP/1.1\r\nHost: localhost\r\n\r\n")}, false},
 		{"Large Request Line", args{LargeHeaderRequest.Bytes()}, true},
+		{"Real Chrome Request", args{[]byte("GET / HTTP/1.1\r\nHost: localhost:8080\r\nConnection: keep-alive\r\nCache-Control: max-age=0\r\nsec-ch-ua: \" Not;A Brand\";v=\"99\", \"Google Chrome\";v=\"97\", \"Chromium\";v=\"97\"\r\nsec-ch-ua-mobile: ?0\r\nsec-ch-ua-platform: \"Windows\"\r\nUpgrade-Insecure-Requests: 1\r\nDNT: 1\r\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36\r\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\r\nSec-Fetch-Site: cross-site\r\nSec-Fetch-Mode: navigate\r\nSec-Fetch-User: ?1\r\nSec-Fetch-Dest: document\r\nAccept-Encoding: gzip, deflate, br\r\nAccept-Language: ko,ko-KR;q=0.9,en-US;q=0.8,en;q=0.7\r\n\r\n")}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

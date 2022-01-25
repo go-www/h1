@@ -247,14 +247,9 @@ func PutBuffer(b *[]byte) {
 	}
 }
 
-var GlobalParserLock sync.Mutex
-
 // Do not use this function in production code.
 // This function is only for testing purpose.
-// It is thread-safe but use global lock.
 func ParseRequest(dst *Request, r io.Reader) (next []byte, err error) {
-	GlobalParserLock.Lock()
-	defer GlobalParserLock.Unlock()
 	dst.Reset()
 	var buffer *[]byte = GetBuffer()
 	//defer PutBuffer(buffer) // Allow GC to collect the buffer
