@@ -99,7 +99,7 @@ func Test_parseRequestLineforTest(t *testing.T) {
 	}
 }
 
-func DeepCompare(a, b interface{}) bool {
+func DeepCompare(a, b any) bool {
 	// check if the two interfaces are the same type
 	if reflect.TypeOf(a) != reflect.TypeOf(b) {
 		return false

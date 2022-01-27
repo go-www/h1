@@ -23,7 +23,7 @@ type Request struct {
 }
 
 var requestPool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		return &Request{}
 	},
 }
@@ -231,7 +231,7 @@ func (h *Header) Reset() {
 const BufferPoolSize = 4096
 
 var bufferPool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		buffer := make([]byte, BufferPoolSize)
 		return &buffer
 	},

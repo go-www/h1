@@ -13,6 +13,10 @@ type Response struct {
 
 	// Itoa Buffer
 	itoaBuf []byte // buffer for itoa
+
+	// Standard Hop-by-Hop response headers.
+	ContentLength int
+	Connection    Connection
 }
 
 func (r *Response) Reset() {
@@ -78,4 +82,38 @@ func (r *Response) WriteUint(u uint) (int, error) {
 func (r *Response) WriteStatusLine(status int) error {
 	_, err := r.Write(GetStatusLine(status))
 	return err
+}
+
+var contentLengthHeader = []byte("Content-Length: ")
+var crlf = []byte("\r\n")
+
+func (r *Response) WriteHeader(status int) error {
+	err := r.WriteStatusLine(status)
+	if err != nil {
+		return err
+	}
+	// Write standard hop-by-hop response headers
+
+	// Content-Length
+	if r.ContentLength >= 0 {
+		_, err = r.Write(contentLengthHeader)
+		if err != nil {
+			return err
+		}
+		_, err = r.WriteInt(r.ContentLength)
+		if err != nil {
+			return err
+		}
+		_, err = r.Write(crlf)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Connection
+	_, err = r.Write(getConnectionHeader(r.Connection))
+	if err != nil {
+		return err
+	}
+	return nil
 }
