@@ -20,7 +20,7 @@ func (r *RequestReader) Reset() {
 	r.Request.Reset()
 }
 
-func (r *RequestReader) fill() (n int, err error) {
+func (r *RequestReader) Fill() (n int, err error) {
 	// Copy the remaining bytes to the read buffer
 	n0 := copy(r.ReadBuffer[:cap(r.ReadBuffer)], r.NextBuffer)
 
@@ -33,7 +33,7 @@ func (r *RequestReader) fill() (n int, err error) {
 	// Set the next buffer to the read buffer
 	r.NextBuffer = r.ReadBuffer[:n0+n1]
 
-	return n0 + n1, nil
+	return n1, nil
 }
 
 func (r *RequestReader) Next() (remaining int, err error) {
@@ -57,7 +57,7 @@ parse:
 		if err == ErrBufferTooSmall {
 			// Buffer is too small, read more bytes
 
-			_, err = r.fill()
+			_, err = r.Fill()
 			if err != nil {
 				return 0, err
 			}
@@ -77,7 +77,7 @@ parse:
 		if err == ErrBufferTooSmall {
 			// Buffer is too small, read more bytes
 
-			_, err = r.fill()
+			_, err = r.Fill()
 			if err != nil {
 				return 0, err
 			}
@@ -148,7 +148,7 @@ func (r *BodyReader) Read(p []byte) (n int, err error) {
 	}
 
 	// Fill The buffer
-	_, err = r.Upstream.fill()
+	_, err = r.Upstream.Fill()
 	if err != nil {
 		return n0, err
 	}
