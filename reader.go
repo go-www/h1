@@ -115,3 +115,12 @@ var BodyReaderPool = &sync.Pool{
 		return &BodyReader{}
 	},
 }
+
+func GetBodyReader() *BodyReader {
+	return BodyReaderPool.Get().(*BodyReader)
+}
+
+func PutBodyReader(r *BodyReader) {
+	r.reset()
+	BodyReaderPool.Put(r)
+}
