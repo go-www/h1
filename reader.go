@@ -20,7 +20,23 @@ func (r *RequestReader) Reset() {
 	r.Request.Reset()
 }
 
-func (r *RequestReader) Next() (remainint int, err error) {
+func (r *RequestReader) fill() (n int, err error) {
+	// Copy the remaining bytes to the read buffer
+	n0 := copy(r.ReadBuffer[:cap(r.ReadBuffer)], r.NextBuffer)
+
+	// Read more bytes
+	n1, err := r.R.Read(r.ReadBuffer[n0:cap(r.ReadBuffer)])
+	if err != nil {
+		return 0, err
+	}
+
+	// Set the next buffer to the read buffer
+	r.NextBuffer = r.ReadBuffer[:n0+n1]
+
+	return n0 + n1, nil
+}
+
+func (r *RequestReader) Next() (remaining int, err error) {
 	var retryCount int = 0
 
 	if r.Remaining() == 0 {
@@ -41,17 +57,10 @@ parse:
 		if err == ErrBufferTooSmall {
 			// Buffer is too small, read more bytes
 
-			// Copy the remaining bytes to the read buffer
-			n0 := copy(r.ReadBuffer[:cap(r.ReadBuffer)], r.NextBuffer)
-
-			// Read more bytes
-			n1, err := r.R.Read(r.ReadBuffer[n0:cap(r.ReadBuffer)])
+			_, err = r.fill()
 			if err != nil {
 				return 0, err
 			}
-
-			// Set the next buffer to the read buffer
-			r.NextBuffer = r.ReadBuffer[:n0+n1]
 
 			// Retry parsing
 			retryCount++
@@ -68,17 +77,10 @@ parse:
 		if err == ErrBufferTooSmall {
 			// Buffer is too small, read more bytes
 
-			// Copy the remaining bytes to the read buffer
-			n0 := copy(r.ReadBuffer, r.NextBuffer)
-
-			// Read more bytes
-			n1, err := r.R.Read(r.ReadBuffer[n0:cap(r.ReadBuffer)])
+			_, err = r.fill()
 			if err != nil {
 				return 0, err
 			}
-
-			// Set the next buffer to the read buffer
-			r.NextBuffer = r.ReadBuffer[:n0+n1]
 
 			// Retry parsing
 			retryCount++
@@ -123,4 +125,48 @@ func GetBodyReader() *BodyReader {
 func PutBodyReader(r *BodyReader) {
 	r.reset()
 	BodyReaderPool.Put(r)
+}
+
+func (r *BodyReader) Read(p []byte) (n int, err error) {
+	if r.Index >= r.Limit {
+		return 0, io.EOF
+	}
+
+	// If p is bigger than the remaining bytes, set the limit to the remaining bytes
+	if len(p) > r.Limit-r.Index {
+		p = p[:r.Limit-r.Index]
+	}
+
+	// Copy the remaining bytes to the read buffer
+	n0 := copy(p, r.Upstream.NextBuffer)
+	r.Upstream.NextBuffer = r.Upstream.NextBuffer[n0:]
+	r.Index += n0
+
+	if len(p) == n0 {
+		// No more bytes to read
+		return n0, nil
+	}
+
+	// Fill The buffer
+	_, err = r.Upstream.fill()
+	if err != nil {
+		return n0, err
+	}
+
+	// If p is bigger than Uptream.ReadBuffer then read directly from the upstream
+	if len(p)-n0 > len(r.Upstream.ReadBuffer) {
+		n1, err := r.Upstream.R.Read(p[n0:])
+		if err != nil {
+			return n0 + n1, err
+		}
+		return n0 + n1, nil
+	}
+
+	// Read more bytes
+	n1, err := r.Read(p[n0:])
+	if err != nil {
+		return n0 + n1, err
+	}
+
+	return n0 + n1, nil
 }
