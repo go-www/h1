@@ -1,6 +1,9 @@
 package h1
 
-import "io"
+import (
+	"io"
+	"sync"
+)
 
 type RequestReader struct {
 	R io.Reader
@@ -91,4 +94,24 @@ parse:
 
 func (r *RequestReader) Remaining() int {
 	return len(r.NextBuffer)
+}
+
+type BodyReader struct {
+	Upstream *RequestReader
+
+	Limit int
+	Index int
+}
+
+func (r *BodyReader) reset() {
+	r.Upstream = nil
+
+	r.Limit = 0
+	r.Index = 0
+}
+
+var BodyReaderPool = &sync.Pool{
+	New: func() any {
+		return &BodyReader{}
+	},
 }
