@@ -3,7 +3,33 @@ package h1
 import (
 	"io"
 	"strconv"
+	"sync"
 )
+
+var ResponsePool = sync.Pool{
+	New: func() any {
+		return &Response{
+			upstream:      nil,
+			buf:           make([]byte, 0, 8192),
+			itoaBuf:       make([]byte, 0, 32),
+			n:             0,
+			ContentLength: -1,
+			Connection:    ConnectionKeepAlive,
+		}
+	},
+}
+
+func GetResponse(upstream io.Writer) *Response {
+	r := ResponsePool.Get().(*Response)
+	r.upstream = upstream
+	return r
+}
+
+func PutResponse(r *Response) {
+	r.Reset()
+	r.upstream = nil
+	ResponsePool.Put(r)
+}
 
 type Response struct {
 	upstream io.Writer
@@ -29,7 +55,7 @@ func (r *Response) Flush() error {
 		return nil
 	}
 
-	_, err := r.upstream.Write(r.buf)
+	_, err := r.upstream.Write(r.buf[:r.n])
 	if err != nil {
 		return err
 	}
@@ -39,7 +65,7 @@ func (r *Response) Flush() error {
 }
 
 func (r *Response) Write(b []byte) (int, error) {
-	n := copy(r.buf[r.n:], b) // copy to buffer
+	n := copy(r.buf[r.n:cap(r.buf)], b) // copy to buffer
 	r.n += n
 	if len(r.buf) < cap(r.buf) {
 		return n, nil
@@ -112,6 +138,11 @@ func (r *Response) WriteHeader(status int) error {
 
 	// Connection
 	_, err = r.Write(getConnectionHeader(r.Connection))
+	if err != nil {
+		return err
+	}
+
+	_, err = r.Write(crlf)
 	if err != nil {
 		return err
 	}

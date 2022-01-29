@@ -9,8 +9,6 @@ import (
 )
 
 type Request struct {
-	noCopy
-
 	// Request line
 	Method  Method
 	URI     []byte
