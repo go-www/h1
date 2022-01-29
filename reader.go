@@ -98,6 +98,13 @@ func (r *RequestReader) Remaining() int {
 	return len(r.NextBuffer)
 }
 
+func (r *RequestReader) Body() *BodyReader {
+	br := GetBodyReader()
+	br.Limit = int(r.Request.ContentLength)
+	br.Upstream = r
+	return br
+}
+
 type BodyReader struct {
 	Upstream *RequestReader
 
