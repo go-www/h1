@@ -25,7 +25,7 @@ func handleConnection(conn net.Conn) {
 		NextBuffer: nil,
 		Request:    h1.Request{},
 	}
-	resp := h1.GetResponse(&LogWriter{conn})
+	resp := h1.GetResponse(conn)
 	defer h1.PutResponse(resp)
 	for {
 		_, err := reader.Next()
