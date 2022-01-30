@@ -10,13 +10,7 @@ import (
 //nolint
 func stringToBytes(s string) []byte {
 	//#nosec
-	strHeader := (*reflect.StringHeader)(unsafe.Pointer(&s))
-	//#nosec
-	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: strHeader.Data,
-		Len:  strHeader.Len,
-		Cap:  strHeader.Len,
-	}))
+	return unsafe.Slice((*byte)(unsafe.Pointer((*reflect.StringHeader)(unsafe.Pointer(&s)).Data)), len(s))
 }
 
 func bytesToString(b []byte) string {

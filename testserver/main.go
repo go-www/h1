@@ -6,7 +6,6 @@ import (
 	"net"
 
 	"github.com/go-www/h1"
-	"github.com/kr/pretty"
 )
 
 type LogWriter struct {
@@ -38,23 +37,12 @@ func handleConnection(conn net.Conn) {
 			log.Println(err)
 			return
 		}
-		body, err := io.ReadAll(reader.Body())
-		if err != nil {
-			log.Println(err)
-			return
-		}
 
-		data := []byte(pretty.Sprint(reader.Request))
-		log.Println(string(data))
-		resp.ContentLength = len(data) + len(body) + 2
-		err = resp.WriteHeader(200)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-		resp.Write(body)
-		resp.Write([]byte("\n\n"))
-		resp.Write(data)
+		resp.ContentLength = 13
+		resp.Connection = h1.ConnectionKeepAlive
+		resp.WriteHeader(200)
+		resp.WriteString("Hello, World!")
+
 		if reader.Remaining() == 0 {
 			err = resp.Flush()
 			if err != nil {
@@ -71,6 +59,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer ln.Close()
+	log.Println("Listening on http://localhost:50901")
 
 	for {
 		c, err := ln.Accept()
