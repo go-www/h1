@@ -50,6 +50,17 @@ func (r *Response) Reset() {
 	r.buf = r.buf[:0]
 }
 
+var DefaultFastDateServer = NewFastDateServer("h1")
+
+var _ = func() int {
+	go DefaultFastDateServer.Start()
+	return 0
+}()
+
+var DateServerHeaderFunc = func() []byte {
+	return DefaultFastDateServer.GetDate()
+}
+
 func (r *Response) Flush() error {
 	if r.upstream == nil {
 		return nil
@@ -140,6 +151,11 @@ func (r *Response) WriteHeader(status int) error {
 		return err
 	}
 	// Write standard hop-by-hop response headers
+
+	_, err = r.Write(DateServerHeaderFunc())
+	if err != nil {
+		return err
+	}
 
 	// Content-Length
 	if r.ContentLength >= 0 {
