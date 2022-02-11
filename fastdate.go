@@ -21,7 +21,7 @@ type FastDateServer struct {
 
 func NewFastDateServer(serverName string) *FastDateServer {
 	fds := &FastDateServer{
-		dates:      make([]*[]byte, 0, 32),
+		dates:      make([]*[]byte, 32),
 		serverName: serverName,
 		index:      0,
 		stop:       make(chan struct{}),
