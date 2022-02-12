@@ -60,6 +60,11 @@ jobs:
       run: |
         go run ./tests > benchmark.md
 
+    - uses: actions/upload-artifact@v2
+      with:
+        name: benchmark_pprof_output
+        path: testOutput
+
     - id: make-benchmark-report
       run: |
         go run ./tests/urlescape benchmark.md
