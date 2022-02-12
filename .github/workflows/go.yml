@@ -56,7 +56,7 @@ jobs:
 
     - name: Run Benchmark
       env:
-        IMGBB_API_KEY: ${{ secrets.IMGBB_API_KEY }}
+        IMGUR_CLIENT_ID: ${{ secrets.IMGUR_CLIENT_ID }}
       run: |
         go run ./tests > benchmark.md
 

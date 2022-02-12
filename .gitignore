@@ -16,3 +16,5 @@
 
 fuzz/corpus
 fuzz/fuzz-fuzz.zip
+
+.env

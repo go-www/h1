@@ -7,47 +7,34 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"time"
 )
 
-type ImgBBAPIResponse struct {
+type ImgurAPIResponse struct {
 	Data    Data `json:"data"`
 	Success bool `json:"success"`
 	Status  int  `json:"status"`
 }
-type Image struct {
-	Filename  string `json:"filename"`
-	Name      string `json:"name"`
-	Mime      string `json:"mime"`
-	Extension string `json:"extension"`
-	URL       string `json:"url"`
-}
-type Thumb struct {
-	Filename  string `json:"filename"`
-	Name      string `json:"name"`
-	Mime      string `json:"mime"`
-	Extension string `json:"extension"`
-	URL       string `json:"url"`
-}
-type Medium struct {
-	Filename  string `json:"filename"`
-	Name      string `json:"name"`
-	Mime      string `json:"mime"`
-	Extension string `json:"extension"`
-	URL       string `json:"url"`
-}
 type Data struct {
-	ID         string `json:"id"`
-	Title      string `json:"title"`
-	URLViewer  string `json:"url_viewer"`
-	URL        string `json:"url"`
-	DisplayURL string `json:"display_url"`
-	DeleteURL  string `json:"delete_url"`
+	ID          string      `json:"id"`
+	Title       interface{} `json:"title"`
+	Description interface{} `json:"description"`
+	Datetime    int         `json:"datetime"`
+	Type        string      `json:"type"`
+	Animated    bool        `json:"animated"`
+	Width       int         `json:"width"`
+	Height      int         `json:"height"`
+	Size        int         `json:"size"`
+	Views       int         `json:"views"`
+	Bandwidth   int         `json:"bandwidth"`
+	Deletehash  string      `json:"deletehash"`
+	Name        string      `json:"name"`
+	Link        string      `json:"link"`
 }
 
-func uploadImage(imageData []byte, imageName string) (imgURL string, err error) {
+func uploadImage(imageData []byte, imageName string) (imgURL, imageDeleteHash string, err error) {
 	var buffer bytes.Buffer
 	multipartWriter := multipart.NewWriter(&buffer)
-	multipartWriter.WriteField("key", os.Getenv("IMGBB_API_KEY"))
 	imgFileWriter, err := multipartWriter.CreateFormFile("image", imageName)
 	if err != nil {
 		return
@@ -57,18 +44,28 @@ func uploadImage(imageData []byte, imageName string) (imgURL string, err error) 
 		return
 	}
 	multipartWriter.Close()
-	resp, err := http.Post("https://api.imgbb.com/1/upload", multipartWriter.FormDataContentType(), &buffer)
+	req, err := http.NewRequest("POST", "https://api.imgur.com/3/image", &buffer)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Authorization", "Client-ID "+os.Getenv("IMGUR_CLIENT_ID"))
+	req.Header.Set("Content-Type", multipartWriter.FormDataContentType())
+
+	client := &http.Client{
+		Timeout: 15 * time.Second,
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return
 	}
 	defer resp.Body.Close()
-	var imgBBAPIResponse ImgBBAPIResponse
-	err = json.NewDecoder(resp.Body).Decode(&imgBBAPIResponse)
+	var imgurAPIResp ImgurAPIResponse
+	err = json.NewDecoder(resp.Body).Decode(&imgurAPIResp)
 	if err != nil {
 		return
 	}
-	if !imgBBAPIResponse.Success {
-		err = fmt.Errorf("imgBB API error: %v", imgBBAPIResponse.Status)
+	if !imgurAPIResp.Success {
+		err = fmt.Errorf("imgur API error: %v", imgurAPIResp.Status)
 	}
-	return imgBBAPIResponse.Data.URL, nil
+	return imgurAPIResp.Data.Link, imgurAPIResp.Data.Deletehash, nil
 }

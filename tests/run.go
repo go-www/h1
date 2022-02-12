@@ -51,12 +51,12 @@ func main() {
 			panic(err)
 		}
 
-		cpuURL, err := uploadImage(CPUImageBuffer.Bytes(), benchmark+"_profile.png")
+		cpuURL, _, err := uploadImage(CPUImageBuffer.Bytes(), benchmark+"_profile.png")
 		if err != nil {
 			panic(err)
 		}
 
-		memURL, err := uploadImage(MemImageBuffer.Bytes(), benchmark+"_memprofile.png")
+		memURL, _, err := uploadImage(MemImageBuffer.Bytes(), benchmark+"_memprofile.png")
 		if err != nil {
 			panic(err)
 		}
