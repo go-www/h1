@@ -43,7 +43,10 @@ func uploadImage(imageData []byte, imageName string) (imgURL, imageDeleteHash st
 	if err != nil {
 		return
 	}
-	multipartWriter.Close()
+	err = multipartWriter.Close()
+	if err != nil {
+		return
+	}
 	req, err := http.NewRequest("POST", "https://api.imgur.com/3/image", &buffer)
 	if err != nil {
 		return
