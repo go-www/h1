@@ -14,6 +14,12 @@ var connectionHeaderTable [16][]byte
 const connectionHeaderTableMask = 1<<4 - 1
 
 var _ = func() int {
+	nilString := []byte("")
+
+	for i := range connectionHeaderTable {
+		connectionHeaderTable[i] = nilString
+	}
+
 	connectionHeaderTable[ConnectionClose] = []byte("Connection: close\r\n")
 	connectionHeaderTable[ConnectionKeepAlive] = []byte("Connection: keep-alive\r\n")
 	connectionHeaderTable[ConnectionUpgrade] = []byte("Connection: upgrade\r\n")
