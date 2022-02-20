@@ -178,10 +178,5 @@ func (r *Response) WriteHeader(status int) error {
 	if err != nil {
 		return err
 	}
-
-	_, err = r.Write(crlf)
-	if err != nil {
-		return err
-	}
 	return nil
 }
