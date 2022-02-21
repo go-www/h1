@@ -41,6 +41,7 @@ func (fds *FastDateServer) updateDate(date time.Time) {
 	new := fds.dates[fds.index%len(fds.dates)]
 	fds.index++
 
+	*new = (*new)[:0]
 	*new = append(*new, "Date: "...)
 	*new = append(*new, date.Format(time.RFC1123)...)
 	*new = append(*new, "\r\nServer: "...)
