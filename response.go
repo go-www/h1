@@ -48,6 +48,7 @@ type Response struct {
 func (r *Response) Reset() {
 	r.n = 0
 	r.buf = r.buf[:0]
+	r.ContentLength = -1
 }
 
 var DefaultFastDateServer = NewFastDateServer("h1")
