@@ -27,7 +27,7 @@ func Benchmark_H1_URI_Parse(b *testing.B) {
 	})
 }
 
-func Benchmark_H1_URI_Parse_Query(b *testing.B) {
+func Benchmark_H1_URI_Query(b *testing.B) {
 	b.RunParallel(func(p *testing.PB) {
 		uri := URI{}
 		data := []byte("/oauth2/authorize?response_type=code&client_id=foo&redirect_uri=http%3A%2F%2Fexample.com%2Fcb&scope=email%20profile&state=xyz&nonce=abc")
