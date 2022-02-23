@@ -11,11 +11,14 @@ import (
 type Request struct {
 	// Request line
 	Method  Method
-	URI     []byte
+	RawURI  []byte
 	Version []byte
 
 	// Headers
 	Headers []Header
+
+	// Parsed URI
+	URI URI
 
 	ContentLength int64
 }
@@ -28,7 +31,7 @@ var requestPool = sync.Pool{
 
 func (r *Request) Reset() {
 	r.Method = MethodInvalid
-	r.URI = nil
+	r.RawURI = nil
 	r.Version = nil
 	r.Headers = r.Headers[:0]
 	r.ContentLength = 0
@@ -78,7 +81,7 @@ func parseRequestLineforTest(src []byte) (method Method, uri []byte, version []b
 	if err != nil {
 		return MethodInvalid, nil, nil, nil, err
 	}
-	return req.Method, req.URI, req.Version, next, nil
+	return req.Method, req.RawURI, req.Version, next, nil
 }
 
 var methodTable = [256]Method{}
@@ -147,7 +150,7 @@ func ParseRequestLine(dst *Request, src []byte) (next []byte, err error) {
 	if URIIndex < 0 {
 		return nil, ErrInvalidURI
 	}
-	dst.URI = line[MethodIndex+1 : MethodIndex+1+URIIndex]
+	dst.RawURI = line[MethodIndex+1 : MethodIndex+1+URIIndex]
 	dst.Version = line[MethodIndex+1+URIIndex+1:]
 
 	m := line[:MethodIndex]

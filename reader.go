@@ -91,6 +91,9 @@ parse:
 		}
 	}
 
+	// Parse URI
+	r.Request.URI.Parse(r.Request.RawURI)
+
 	return len(r.NextBuffer), nil
 }
 

@@ -13,6 +13,9 @@ var Benchmarks = []string{
 	"BenchmarkParseRequest",
 	"Benchmark_stricmp",
 	"Benchmark_ContentLength_stricmp",
+	"Benchmark_Net_URL_Parse",
+	"Benchmark_H1_URI_Parse",
+	"Benchmark_H1_URI_Parse_Query",
 }
 
 func main() {
