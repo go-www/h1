@@ -16,6 +16,7 @@ var Benchmarks = []string{
 	"Benchmark_Net_URL_Parse",
 	"Benchmark_H1_URI_Parse",
 	"Benchmark_H1_URI_Query",
+	"Benchmark_Request_Reader",
 }
 
 func main() {
