@@ -180,3 +180,52 @@ func (r *BodyReader) Read(p []byte) (n int, err error) {
 
 	return n0 + n1, nil
 }
+
+func (r *BodyReader) Close() error {
+	PutBodyReader(r)
+	return nil
+}
+
+type HijackReader struct {
+	Upstream *RequestReader
+}
+
+func (h HijackReader) Read(p []byte) (n int, err error) {
+	// Copy the remaining bytes to the read buffer
+	n0 := copy(p, h.Upstream.NextBuffer)
+	h.Upstream.NextBuffer = h.Upstream.NextBuffer[n0:]
+
+	if len(p) == n0 {
+		// No more bytes to read
+		return n0, nil
+	}
+
+	// Fill The buffer
+	_, err = h.Upstream.Fill()
+	if err != nil {
+		return n0, err
+	}
+
+	// If p is bigger than Uptream.ReadBuffer then read directly from the upstream
+	if len(p)-n0 > len(h.Upstream.ReadBuffer) {
+		n1, err := h.Upstream.R.Read(p[n0:])
+		if err != nil {
+			return n0 + n1, err
+		}
+		return n0 + n1, nil
+	}
+
+	// Read more bytes
+	n1, err := h.Read(p[n0:])
+	if err != nil {
+		return n0 + n1, err
+	}
+
+	return n0 + n1, nil
+}
+
+func (r *RequestReader) Hijack() HijackReader {
+	return HijackReader{
+		Upstream: r,
+	}
+}
