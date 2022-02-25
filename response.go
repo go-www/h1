@@ -14,7 +14,7 @@ var ResponsePool = sync.Pool{
 			itoaBuf:       make([]byte, 0, 32),
 			n:             0,
 			ContentLength: -1,
-			Connection:    ConnectionKeepAlive,
+			//Connection:    ConnectionKeepAlive,
 		}
 	},
 }
@@ -42,7 +42,7 @@ type Response struct {
 
 	// Standard Hop-by-Hop response headers.
 	ContentLength int
-	Connection    Connection
+	//Connection    Connection
 }
 
 func (r *Response) Reset() {
@@ -174,10 +174,5 @@ func (r *Response) WriteHeader(status int) error {
 		}
 	}
 
-	// Connection
-	_, err = r.Write(getConnectionHeader(r.Connection))
-	if err != nil {
-		return err
-	}
 	return nil
 }

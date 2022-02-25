@@ -39,7 +39,7 @@ func handleConnection(conn net.Conn) {
 		}
 
 		resp.ContentLength = 13
-		resp.Connection = h1.ConnectionKeepAlive
+		//resp.Connection = h1.ConnectionKeepAlive
 		resp.WriteHeader(200)
 		resp.WriteString("Hello, World!")
 

@@ -1,5 +1,6 @@
 package h1
 
+/*
 type Connection uint8
 
 const (
@@ -10,8 +11,6 @@ const (
 )
 
 var connectionHeaderTable [16][]byte
-
-const connectionHeaderTableMask = 1<<4 - 1
 
 var _ = func() int {
 	nilString := []byte("")
@@ -28,5 +27,6 @@ var _ = func() int {
 }
 
 func getConnectionHeader(c Connection) []byte {
-	return connectionHeaderTable[c&connectionHeaderTableMask]
+	return connectionHeaderTable[c%16]
 }
+*/
