@@ -60,6 +60,7 @@ var ErrInvalidURI = errors.New("invalid uri")
 var ErrInvalidVersion = errors.New("invalid version")
 
 var ErrBufferTooSmall = errors.New("buffer too small")
+var ErrRequestHeaderTooLarge = errors.New("request header too large")
 
 func splitLine(src []byte) (line, rest []byte, err error) {
 	idx := bytes.IndexByte(src, '\n')
@@ -140,15 +141,15 @@ func ParseRequestLine(dst *Request, src []byte) (next []byte, err error) {
 	var line []byte
 	line, next, err = splitLine(next)
 	if err != nil {
-		return nil, err
+		return next, err
 	}
 	MethodIndex := bytes.IndexByte(line, ' ')
 	if MethodIndex < 0 || MethodIndex < 3 {
-		return nil, ErrInvalidMethod
+		return next, ErrInvalidMethod
 	}
 	URIIndex := bytes.IndexByte(line[MethodIndex+1:], ' ')
 	if URIIndex < 0 {
-		return nil, ErrInvalidURI
+		return next, ErrInvalidURI
 	}
 	dst.RawURI = line[MethodIndex+1 : MethodIndex+1+URIIndex]
 	dst.Version = line[MethodIndex+1+URIIndex+1:]
@@ -167,7 +168,7 @@ func ParseHeaders(dst *Request, src []byte) (next []byte, err error) {
 	for {
 		line, next, err = splitLine(next)
 		if err != nil {
-			return nil, err
+			return next, err
 		}
 		if len(line) == 0 {
 			break
@@ -179,7 +180,7 @@ func ParseHeaders(dst *Request, src []byte) (next []byte, err error) {
 		if stricmp(h.Name, ContentLengthHeader) {
 			dst.ContentLength, err = ParseContentLength(h.RawValue)
 			if err != nil {
-				return nil, err
+				return next, err
 			}
 		}
 	}

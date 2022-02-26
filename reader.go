@@ -62,6 +62,10 @@ parse:
 				return 0, err
 			}
 
+			if len(r.NextBuffer) == cap(r.ReadBuffer) {
+				return 0, ErrRequestHeaderTooLarge
+			}
+
 			// Retry parsing
 			retryCount++
 			if retryCount > 1 {
@@ -80,6 +84,10 @@ parse:
 			_, err = r.Fill()
 			if err != nil {
 				return 0, err
+			}
+
+			if len(r.NextBuffer) == cap(r.ReadBuffer) {
+				return 0, ErrRequestHeaderTooLarge
 			}
 
 			// Retry parsing
