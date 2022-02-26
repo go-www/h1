@@ -63,7 +63,7 @@ var DateServerHeaderFunc = func() []byte {
 }
 
 func (r *Response) Flush() error {
-	if r.upstream == nil {
+	if r.upstream == nil || r.n == 0 {
 		return nil
 	}
 
