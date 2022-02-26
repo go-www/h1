@@ -64,7 +64,7 @@ parse:
 
 			// Retry parsing
 			retryCount++
-			if retryCount > 2 {
+			if retryCount > 1 {
 				return 0, ErrBufferTooSmall
 			}
 			goto parse
@@ -84,7 +84,7 @@ parse:
 
 			// Retry parsing
 			retryCount++
-			if retryCount > 2 {
+			if retryCount > 1 {
 				return 0, ErrBufferTooSmall
 			}
 			goto parse
