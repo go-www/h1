@@ -51,7 +51,11 @@ func (u *URI) Path() []byte {
 }
 
 func (u *URI) parseQuery() {
-	next := u.RawQuery
+	u.queryArgs = ParseRawQuery(u.RawQuery, u.queryArgs)
+}
+
+func ParseRawQuery(rawQuery []byte, dst []Query) []Query {
+	next := rawQuery
 
 	for {
 		var key, value []byte
@@ -72,18 +76,20 @@ func (u *URI) parseQuery() {
 			value = next[:valueEnd]
 			next = next[valueEnd+1:]
 		} else {
-			u.queryArgs = append(u.queryArgs, Query{
+			dst = append(dst, Query{
 				Key:   key,
 				Value: percent.Decode(next),
 			})
 			break
 		}
 
-		u.queryArgs = append(u.queryArgs, Query{
+		dst = append(dst, Query{
 			Key:   key,
 			Value: percent.Decode(value),
 		})
 	}
+
+	return dst
 }
 
 func (u *URI) Query() []Query {
