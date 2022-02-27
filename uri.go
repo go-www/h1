@@ -3,12 +3,13 @@ package h1
 import (
 	"bytes"
 	"errors"
-	"net/url"
+
+	"github.com/go-www/h1/encoding/percent"
 )
 
 type Query struct {
-	Key      []byte
-	RawValue []byte
+	Key   []byte
+	Value []byte
 }
 
 type URI struct {
@@ -72,15 +73,15 @@ func (u *URI) parseQuery() {
 			next = next[valueEnd+1:]
 		} else {
 			u.queryArgs = append(u.queryArgs, Query{
-				Key:      key,
-				RawValue: next,
+				Key:   key,
+				Value: percent.Decode(next),
 			})
 			break
 		}
 
 		u.queryArgs = append(u.queryArgs, Query{
-			Key:      key,
-			RawValue: value,
+			Key:   key,
+			Value: percent.Decode(value),
 		})
 	}
 }
@@ -96,12 +97,12 @@ func (u *URI) Query() []Query {
 
 var ErrKeyNotFound = errors.New("key not found")
 
-func (u *URI) QueryValue(key []byte) (string, error) {
+func (u *URI) QueryValue(key []byte) ([]byte, error) {
 	for _, q := range u.Query() {
 		if bytes.Equal(q.Key, key) {
-			return url.QueryUnescape(string(q.RawValue))
+			return q.Value, nil
 		}
 	}
 
-	return "", ErrKeyNotFound
+	return nil, ErrKeyNotFound
 }
