@@ -138,6 +138,24 @@ func (r *Response) WriteUint(u uint) (int, error) {
 	return r.Write(r.itoaBuf)
 }
 
+func (r *Response) WriteInt64(i int64) (int, error) {
+	r.itoaBuf = r.itoaBuf[:0]
+	r.itoaBuf = strconv.AppendInt(r.itoaBuf, i, 10)
+	return r.Write(r.itoaBuf)
+}
+
+func (r *Response) WriteUint64(u uint64) (int, error) {
+	r.itoaBuf = r.itoaBuf[:0]
+	r.itoaBuf = strconv.AppendUint(r.itoaBuf, u, 10)
+	return r.Write(r.itoaBuf)
+}
+
+func (r *Response) WriteUint64Hex(u uint64) (int, error) {
+	r.itoaBuf = r.itoaBuf[:0]
+	r.itoaBuf = strconv.AppendUint(r.itoaBuf, u, 16)
+	return r.Write(r.itoaBuf)
+}
+
 func (r *Response) WriteStatusLine(status int) error {
 	_, err := r.Write(GetStatusLine(status))
 	return err
