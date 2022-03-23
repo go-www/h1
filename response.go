@@ -10,7 +10,7 @@ var ResponsePool = sync.Pool{
 	New: func() any {
 		return &Response{
 			upstream:      nil,
-			buf:           make([]byte, 0, 8192),
+			buf:           make([]byte, 8192),
 			itoaBuf:       make([]byte, 0, 32),
 			n:             0,
 			ContentLength: -1,
