@@ -162,6 +162,7 @@ func (r *Response) WriteString(s string) (int, error) {
 	return nn, nil
 }
 
+// WriteByte writes a single byte.
 func (r *Response) WriteByte(c byte) error {
 	if r.err != nil {
 		return r.err
