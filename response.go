@@ -140,6 +140,10 @@ func (r *Response) Write(p []byte) (nn int, err error) {
 	return nn, nil
 }
 
+// WriteString writes a string.
+// It returns the number of bytes written.
+// If the count is less than len(s), it also returns an error explaining
+// why the write is short.
 func (r *Response) WriteString(s string) (int, error) {
 	nn := 0
 	for len(s) > r.Available() && r.err == nil {
